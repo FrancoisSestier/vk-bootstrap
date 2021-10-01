@@ -3,13 +3,13 @@ project(VulkanBootstrap)
 
 option(VK_BOOTSTRAP_WERROR "Enable warnings as errors during compilation" OFF)
 
-add_library(vk-bootstrap-vulkan-headers INTERFACE)
+add_library(vk-boostrap-vulkan-headers INTERFACE)
 
 set(VK_BOOTSTRAP_VULKAN_HEADER_DIR "" CACHE STRING "Specify the location of the Vulkan-Headers include directory.")
 mark_as_advanced(VK_BOOTSTRAP_VULKAN_HEADER_DIR)
 
 if(NOT "${VK_BOOTSTRAP_VULKAN_HEADER_DIR}" STREQUAL "")
-  target_include_directories(vk-bootstrap-vulkan-headers INTERFACE $<BUILD_INTERFACE:${VK_BOOTSTRAP_VULKAN_HEADER_DIR}>)
+  target_include_directories(vk-boostrap-vulkan-headers INTERFACE ${VK_BOOTSTRAP_VULKAN_HEADER_DIR})
 else ()
   find_package(Vulkan QUIET)
 
@@ -21,13 +21,13 @@ else ()
           GIT_TAG        v1.2.171
       )
       FetchContent_MakeAvailable(VulkanHeaders)
-      target_link_libraries(vk-bootstrap-vulkan-headers INTERFACE Vulkan::Headers)
+      target_link_libraries(vk-boostrap-vulkan-headers INTERFACE Vulkan::Headers)
   else()
-      set_target_properties(vk-bootstrap-vulkan-headers PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Vulkan_INCLUDE_DIR})
+      set_target_properties(vk-boostrap-vulkan-headers PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${Vulkan_INCLUDE_DIR})
   endif()
 endif()
 
-add_library(vk-bootstrap src/VkBootstrap.h src/VkBootstrap.cpp)
+add_library(vk-bootstrap STATIC src/VkBootstrap.h src/VkBootstrap.cpp)
 add_library(vk-bootstrap::vk-bootstrap ALIAS vk-bootstrap)
 
 add_library(vk-bootstrap-compiler-warnings INTERFACE)
@@ -64,19 +64,23 @@ endif()
 target_include_directories(vk-bootstrap PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>)
+
 target_link_libraries(vk-bootstrap
         PRIVATE
         vk-bootstrap-compiler-warnings
-        vk-bootstrap-vulkan-headers
+        vk-boostrap-vulkan-headers
         ${CMAKE_DL_LIBS})
 target_compile_features(vk-bootstrap PUBLIC cxx_std_14)
 
 include(GNUInstallDirs)
+
 install(FILES src/VkBootstrap.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(TARGETS vk-bootstrap
+install(TARGETS vk-bootstrap vk-bootstrap-compiler-warnings vk-boostrap-vulkan-headers EXPORT vk-bootstarp-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(EXPORT vk-bootstarp-targets  DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 option(VK_BOOTSTRAP_TEST "Test Vk-Bootstrap with glfw and Catch2" OFF)
 
